@@ -81,7 +81,6 @@ public final class AppsFlyerManager {
                 return
             }
         })
-        self.requestTrackingAuthorization(isIDFA: isIDFA)
     }
     
     private func setCustomUserId(){
@@ -93,43 +92,6 @@ public final class AppsFlyerManager {
             let customUserId = UUID().uuidString
             UserDefaults.standard.set(customUserId, forKey: "customUserId")
             AppsFlyerLib.shared().customerUserID = customUserId
-        }
-    }
-    
-    private func requestTrackingAuthorization(isIDFA: Bool) {
-        if #available(iOS 14, *) {
-            ATTrackingManager.requestTrackingAuthorization { [weak self] (status) in
-                guard let self = self else { return }
-                switch status {
-                    case .denied:
-                        print("AuthorizationSatus is denied")
-                        self.setupIDFA(isIDFA: isIDFA)
-                    case .notDetermined:
-                        print("AuthorizationSatus is notDetermined")
-                        self.subscribeParseData()
-                    case .restricted:
-                        print("AuthorizationSatus is restricted")
-                        self.setupIDFA(isIDFA: isIDFA)
-                    case .authorized:
-                        print("AuthorizationSatus is authorized")
-                        self.subscribeParseData()
-                    @unknown default:
-                        fatalError("Invalid authorization status")
-                }
-            }
-        }
-    }
-    
-    private func setupIDFA(isIDFA: Bool){
-        if isIDFA {
-            if let installGet = appsFlyerDelegate.parseAppsFlyerData?.installGet {
-                self.installCompletion.send(installGet)
-            } else {
-                self.subscribeParseData()
-            }
-        } else {
-            self.installCompletion.send(.nonOrganic([:]))
-            self.parseAppsFlyerData.installGet = .nonOrganic([:])
         }
     }
     
